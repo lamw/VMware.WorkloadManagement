@@ -18,7 +18,7 @@ ModuleVersion = '1.0.0'
 # CompatiblePSEditions = @()
 
 # ID used to uniquely identify this module
-GUID = 'VMware.WorkloadManagement'
+GUID = 'ec91654a-c51b-11ea-87d0-0242ac130003'
 
 # Author of this module
 Author = 'William Lam'
