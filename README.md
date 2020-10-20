@@ -4,13 +4,14 @@
 
 ## Summary
 
-PowerCLI Module to interact with [vSphere with Kubernetes](https://blogs.vmware.com/vsphere/2020/03/vsphere-7-kubernetes-tanzu.html) API in vSphere 7. More details can be found in this blog post [here](https://www.virtuallyghetto.com/2020/05/workload-management-powercli-module-for-automating-vsphere-with-kubernetes.html).
+PowerCLI Module to interact with both [vSphere with Tanzu using Distributed Virtual Switch](https://www.virtuallyghetto.com/2020/10/automated-vsphere-with-tanzu-lab-deployment-script.html) and [vSphere with Tanzu using NSX-T](https://blogs.vmware.com/vsphere/2020/03/vsphere-7-kubernetes-tanzu.html).
 
 ## Prerequisites
-* [PowerCLI 12.0](https://code.vmware.com/web/tool/12.0.0/vmware-powercli) or newer
+* [PowerCLI 12.1](https://code.vmware.com/web/tool/12.0.0/vmware-powercli) or newer
 
 ## Functions
 
 * Get-WorkloadManagement
 * New-WorkloadManagement
+* New-WorkloadManagement2 (Please see this [blog post](https://www.virtuallyghetto.com/2020/10/automating-workl…phere-with-tanzu.html) for more details)
 * Remove-WorkloadManagement
