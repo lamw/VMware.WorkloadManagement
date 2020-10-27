@@ -27,6 +27,16 @@ Function New-WorkloadManagement2 {
             Size of Control Plane VMs (TINY, SMALL, MEDIUM, LARGE)
         .PARAMETER HAProxyVMName
             The display name of the HAProxy VM
+        .PARAMETER HAProxyRootPassword
+            Root password for HAProxy VM
+        .PARAMETER HAProxyUsername
+            HAProxy Control Plane Username (default: wcp)
+        .PARAMETER HAProxyPassword
+            HAProxy Control Plane Password
+        .PARAMETER HAProxyIPAddress
+            HAProxy VM Control Plane IP Address
+        .PARAMETER HAProxyPort
+            HAProxy Control Plane port (default: 5556)
         .PARAMETER HAProxyVMvCenterServer
             Hostname/IP of the vCenter Server managing HAProxy VM to automatically retrieve CA certificate
         .PARAMETER HAProxyVMvCenterUsername
@@ -53,7 +63,7 @@ Function New-WorkloadManagement2 {
             Workload Network
         .PARAMETER WorkloadNetworkStartIP
             Starting IP Address for Workload VMs
-        .PARAMETER WorkloadNetworkStartIP
+        .PARAMETER WorkloadNetworkIPCount
             Number of IP Addresses to allocate from starting from WorkloadNetworkStartIP
         .PARAMETER WorkloadNetworkSubnet
             Subnet for Workload Network
@@ -65,12 +75,6 @@ Function New-WorkloadManagement2 {
             K8S Service CIDR (default: 10.96.0.0/24)
         .PARAMETER StoragePolicyName
             Name of VM Storage Policy to use for Control Plane VMs, Ephemeral Disks & Image Cache
-        .PARAMETER HAProxyVMvCenterServer
-            Hostname/IP of the vCenter Server managing HAProxy VM to automatically retrieve CA certificate
-        .PARAMETER HAProxyVMvCenterUsername
-            Username to connect to vCenter Server managing HAProxy VM to automatically retrieve CA certificate
-        .PARAMETER HAProxyVMvCenterPassword
-            Password to connect to vCenter Server managing HAProxy VM to automatically retrieve CA certificate
         .PARAMETER LoadBalancerLabel
             Load Balancer label defined in vSphere with Tanzu (default: tanzu-haproy-1)
         .PARAMETER LoadBalancerStartIP
@@ -87,11 +91,16 @@ Function New-WorkloadManagement2 {
                 TanzuvCenterServerPassword = "VMware1!";
                 TanzuContentLibrary = "TKG-Content-Library";
                 ControlPlaneSize = "TINY";
+                HAProxyVMName = "tanzu-haproxy-1";
+                HAProxyIPAddress = "172.17.31.116";
+                HAProxyRootPassword = "VMware1!";
+                HAProxyUsername = "wcp";
+                HAProxyPassword = "VMware1!";
                 MgmtNetworkStartIP = "172.17.31.120";
                 MgmtNetworkSubnet = "255.255.255.0";
                 MgmtNetworkGateway = "172.17.31.1";
                 MgmtNetworkDNS = @("172.17.31.5");
-                MgmtNetworkDNSDomain = "cpub.corp";
+                MgmtNetworkDNSDomain = "cpbu.corp";
                 MgmtNetworkNTP = @("5.199.135.170");
                 WorkloadNetworkStartIP = "172.17.36.130";
                 WorkloadNetworkIPCount = 20;
@@ -103,10 +112,6 @@ Function New-WorkloadManagement2 {
                 HAProxyVMvCenterServer = "mgmt-vcsa-01.cpbu.corp";
                 HAProxyVMvCenterUsername = "administrator@vsphere.local";
                 HAProxyVMvCenterPassword = "VMware1!";
-                HAProxyVMName = "tanzu-haproxy-1";
-                HAProxyIPAddress = "172.17.31.116";
-                HAProxyRootPassword = "VMware1!";
-                HAProxyPassword = "VMware1!";
                 LoadBalancerStartIP = "172.17.36.2";
                 LoadBalancerIPCount = 125
             }
