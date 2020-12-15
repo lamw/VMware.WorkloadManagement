@@ -10,9 +10,9 @@ Function New-WorkloadManagement2 {
         ===========================================================================
 
         .SYNOPSIS
-            Enable Workload Management on vSphere 7 Cluster using NSX-T networking
+            Enable Workload Management on vSphere 7 Cluster using vSphere networking with HAProxy
         .DESCRIPTION
-            Enable Workload Management on vSphere 7 Cluster using NSX-T networking
+            Enable Workload Management on vSphere 7 Cluster using vSphere networking with HAProxy
         .PARAMETER ClusterName
             Name of vSphere Cluster to enable Workload Management
         .PARAMETER TanzuvCenterServer
