@@ -76,7 +76,7 @@ Function New-WorkloadManagement2 {
         .PARAMETER StoragePolicyName
             Name of VM Storage Policy to use for Control Plane VMs, Ephemeral Disks & Image Cache
         .PARAMETER LoadBalancerLabel
-            Load Balancer label defined in vSphere with Tanzu (default: tanzu-haproy-1)
+            Load Balancer label defined in vSphere with Tanzu (default: tanzu-haproxy-1)
         .PARAMETER LoadBalancerStartIP
             Starting IP Address for HAProxy Load Balancer
         .PARAMETER LoadBalancerIPCount
