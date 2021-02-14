@@ -292,7 +292,7 @@ Function New-WorkloadManagement2 {
 
         $LoginBanner = "
 
-        " + [char]::ConvertFromUtf32(0x1F973) + "vSphere with Tanzu Basic Cluster enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
+        " + [char]::ConvertFromUtf32(0x1F973) + " vSphere with Tanzu Basic Cluster enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
 
     "
         $spec.login_banner = $LoginBanner
@@ -309,14 +309,14 @@ Function New-WorkloadManagement2 {
             Write-host -ForegroundColor red "Error in attempting to enable Tanzu Workload Management on vSphere Cluster ${ClusterName}"
             Write-host -ForegroundColor red "($_.Exception.Message)"
             Disconnect-VIServer * -Confirm:$false | Out-Null
-            Disconnect-CisServer * -Confirm:$false | Out-Null
+            Disconnect-CisServer $global:DefaultCisServers -Confirm:$false | Out-Null
             break
         }
         Write-host -ForegroundColor Green "Please refer to the Tanzu Workload Management UI in vCenter Server to monitor the progress of this operation"
 
         Write-host -ForegroundColor Green "Disconnecting from Tanzu Management vCenter ..."
         Disconnect-VIServer * -Confirm:$false | Out-Null
-        Disconnect-CisServer * -Confirm:$false | Out-Null
+        Disconnect-CisServer $global:DefaultCisServers -Confirm:$false | Out-Null
     }
 }
 
@@ -536,7 +536,7 @@ Function New-WorkloadManagement {
         if($LoginBanner -eq $NULL) {
             $LoginBanner = "
 
-            " + [char]::ConvertFromUtf32(0x1F973) + "vSphere with Kubernetes Cluster enabled by virtuallyGhetto " + [char]::ConvertFromUtf32(0x1F973) + "
+            " + [char]::ConvertFromUtf32(0x1F973) + " vSphere with Tanzu Cluster enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
 
 "
         }
