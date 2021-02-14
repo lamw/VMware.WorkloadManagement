@@ -309,12 +309,14 @@ Function New-WorkloadManagement2 {
             Write-host -ForegroundColor red "Error in attempting to enable Tanzu Workload Management on vSphere Cluster ${ClusterName}"
             Write-host -ForegroundColor red "($_.Exception.Message)"
             Disconnect-VIServer * -Confirm:$false | Out-Null
+            Disconnect-CisServer * -Confirm:$false | Out-Null
             break
         }
         Write-host -ForegroundColor Green "Please refer to the Tanzu Workload Management UI in vCenter Server to monitor the progress of this operation"
 
         Write-host -ForegroundColor Green "Disconnecting from Tanzu Management vCenter ..."
         Disconnect-VIServer * -Confirm:$false | Out-Null
+        Disconnect-CisServer * -Confirm:$false | Out-Null
     }
 }
 
