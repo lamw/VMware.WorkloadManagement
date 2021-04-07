@@ -292,7 +292,7 @@ Function New-WorkloadManagement3 {
 
         $LoginBanner = "
 
-        " + [char]::ConvertFromUtf32(0x1F973) + " vSphere with Tanzu NSX Advanaced LB Cluster enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
+        " + [char]::ConvertFromUtf32(0x1F973) + " vSphere with Tanzu NSX Advanced LB Cluster enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
 
     "
         $spec.login_banner = $LoginBanner
