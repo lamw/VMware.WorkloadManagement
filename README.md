@@ -14,4 +14,5 @@ PowerCLI Module to interact with both [vSphere with Tanzu using Distributed Virt
 * Get-WorkloadManagement
 * New-WorkloadManagement
 * New-WorkloadManagement2 (Please see this [blog post](https://www.virtuallyghetto.com/2020/10/automating-workl…phere-with-tanzu.html) for more details)
+* New-WorkloadManagement3 (Please see this [blog post](https://www.virtuallyghetto.com/2021/04/automated-lab-deployment-script-for-vsphere-with-tanzu-using-nsx-advanced-load-balancer-nsx-alb.html) for more details)
 * Remove-WorkloadManagement
