@@ -5,7 +5,7 @@ Function New-WorkloadManagement3 {
         Created by:    William Lam
         Date:          03/29/2021
         Organization:  VMware
-        Blog:          http://www.virtuallyghetto.com
+        Blog:          http://www.williamlam.com
         Twitter:       @lamw
         ===========================================================================
 
@@ -327,7 +327,7 @@ Function New-WorkloadManagement2 {
         Created by:    William Lam
         Date:          10/06/2020
         Organization:  VMware
-        Blog:          http://www.virtuallyghetto.com
+        Blog:          http://www.williamlam.com
         Twitter:       @lamw
         ===========================================================================
 
@@ -649,7 +649,7 @@ Function New-WorkloadManagement {
         Created by:    William Lam
         Date:          05/19/2020
         Organization:  VMware
-        Blog:          http://www.virtuallyghetto.com
+        Blog:          http://www.williamlam.com
         Twitter:       @lamw
         ===========================================================================
 
@@ -883,7 +883,7 @@ Function Get-WorkloadManagement {
         Created by:    William Lam
         Date:          05/19/2020
         Organization:  VMware
-        Blog:          http://www.virtuallyghetto.com
+        Blog:          http://www.williamlam.com
         Twitter:       @lamw
         ===========================================================================
 
@@ -954,7 +954,7 @@ Function Remove-WorkloadManagement {
         Created by:    William Lam
         Date:          05/19/2020
         Organization:  VMware
-        Blog:          http://www.virtuallyghetto.com
+        Blog:          http://www.williamlam.com
         Twitter:       @lamw
         ===========================================================================
 
