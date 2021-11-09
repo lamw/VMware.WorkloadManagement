@@ -702,20 +702,20 @@ Function New-WorkloadManagement {
                 -ClusterName "Workload-Cluster" `
                 -ControlPlaneSize TINY `
                 -MgmtNetwork "DVPG-Management Network" `
-                -MgmtNetworkStartIP "172.17.36.51" `
+                -MgmtNetworkStartIP "172.17.33.150" `
                 -MgmtNetworkSubnet "255.255.255.0" `
-                -MgmtNetworkGateway "172.17.36.253" `
-                -MgmtNetworkDNS "172.17.31.5" `
-                -MgmtNetworkDNSDomain "cpub.corp" `
+                -MgmtNetworkGateway "172.17.33.1" `
+                -MgmtNetworkDNS "172.17.31.2" `
+                -MgmtNetworkDNSDomain "tshirts.inc" `
                 -MgmtNetworkNTP "5.199.135.170" `
-                -WorkloadNetworkVDS "Pacific-VDS" `
+                -WorkloadNetworkVDS "Tanzu-VDS" `
                 -WorkloadNetworkEdgeCluster "Edge-Cluster-01" `
-                -WorkloadNetworkDNS "172.17.31.5" `
-                -WorkloadNetworkIngressCIDR "172.17.36.64/27" `
-                -WorkloadNetworkEgressCIDR "172.17.36.96/27" `
-                -ControlPlaneStoragePolicy "pacific-gold-storage-policy" `
-                -EphemeralDiskStoragePolicy "pacific-gold-storage-policy" `
-                -ImageCacheStoragePolicy "pacific-gold-storage-policy"
+                -WorkloadNetworkDNS "172.17.31.2" `
+                -WorkloadNetworkIngressCIDR "172.17.33.64/27" `
+                -WorkloadNetworkEgressCIDR "172.17.33.160/27" `
+                -ControlPlaneStoragePolicy "tanzu-gold-storage-policy" `
+                -EphemeralDiskStoragePolicy "tanzu-gold-storage-policy" `
+                -ImageCacheStoragePolicy "tanzu-gold-storage-policy"
 
     #>
     Param (
