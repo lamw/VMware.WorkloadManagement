@@ -12,7 +12,7 @@
 RootModule = 'VMware.WorkloadManagement.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.12'
+ModuleVersion = '1.0.13'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@ Author = 'William Lam'
 CompanyName = 'VMware'
 
 # Copyright statement for this module
-Copyright = '(c) 2020 VMware. All rights reserved.'
+Copyright = '(c) 2022 VMware. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'PowerCLI Module for vSphere with Kubernetes Workload Management'

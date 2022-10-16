@@ -1,3 +1,388 @@
+Function New-WorkloadManagement4 {
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:    William Lam
+        Date:          09/18/2022
+        Organization:  VMware
+        Blog:          http://www.williamlam.com
+        Twitter:       @lamw
+        ===========================================================================
+
+        .SYNOPSIS
+            Enable Workload Management on vSphere 8 Cluster w/vSphere Zones using vSphere networking with HAProxy
+        .DESCRIPTION
+            Enable Workload Management on vSphere 8 Cluster w/vSphere Zones using vSphere networking with HAProxy
+        .PARAMETER VsphereZoneName
+            Name of the vSphere Zone (default: vz-01)
+        .PARAMETER SupervisorClusterName
+            Name of the Supervisor Cluster (default: svc-01)
+        .PARAMETER ClusterName
+            Name of vSphere Cluster to enable Workload Management
+        .PARAMETER TanzuvCenterServer
+            Hostname/IP of the new Tanzu vCenter Server that was deployed
+        .PARAMETER TanzuvCenterServerUsername
+            Username to connect to new Tanzu vCenter Server
+        .PARAMETER TanzuvCenterServerPassword
+            Password to connect to new Tanzu vCenter Server
+        .PARAMETER TanzuContentLibrary
+            Name of the Tanzu Kubernetes Grid subscribed Content Library
+        .PARAMETER ControlPlaneSize
+            Size of Control Plane VMs (TINY, SMALL, MEDIUM, LARGE)
+        .PARAMETER HAProxyVMName
+            The display name of the HAProxy VM
+        .PARAMETER HAProxyRootPassword
+            Root password for HAProxy VM
+        .PARAMETER HAProxyUsername
+            HAProxy Control Plane Username (default: wcp)
+        .PARAMETER HAProxyPassword
+            HAProxy Control Plane Password
+        .PARAMETER HAProxyIPAddress
+            HAProxy VM Control Plane IP Address
+        .PARAMETER HAProxyPort
+            HAProxy Control Plane port (default: 5556)
+        .PARAMETER HAProxyVMvCenterServer
+            Hostname/IP of the vCenter Server managing HAProxy VM to automatically retrieve CA certificate
+        .PARAMETER HAProxyVMvCenterUsername
+            Username to connect to vCenter Server managing HAProxy VM to automatically retrieve CA certificate
+        .PARAMETER HAProxyVMvCenterPassword
+            Password to connect to vCenter Server managing HAProxy VM to automatically retrieve CA certificate
+        .PARAMETER MgmtNetwork
+            Supervisor Management Network for Control Plane VMs
+        .PARAMETER MgmtNetworkStartIP
+            Starting IP Address for Control Plane VMs (5 consecutive free addresses)
+        .PARAMETER MgmtNetworkSubnet
+            Netmask for Management Network
+        .PARAMETER MgmtNetworkGateway
+            Gateway for Management Network
+        .PARAMETER MgmtNetworkDNS
+            DNS Server(s) to use for Management Network
+        .PARAMETER MgmtNetworkDNSDomain
+            DNS Domain(s) to use for Management Network
+        .PARAMETER MgmtNetworkNTP
+            NTP Server(s) to use for Management Network
+        .PARAMETER WorkloadNetworkLabel
+            Workload Network label defined in vSphere with Tanzu (default: workload-1)
+        .PARAMETER WorkloadNetwork
+            Workload Network
+        .PARAMETER WorkloadNetworkStartIP
+            Starting IP Address for Workload VMs
+        .PARAMETER WorkloadNetworkIPCount
+            Number of IP Addresses to allocate from starting from WorkloadNetworkStartIP
+        .PARAMETER WorkloadNetworkSubnet
+            Subnet for Workload Network
+        .PARAMETER WorkloadNetworkGateway
+            Gateway for Workload Network
+        .PARAMETER WorkloadNetworkDNS
+            DNS Server(s) to use for Workloads
+        .PARAMETER WorkloadNetworkDNSDomain
+            DNS Domain(s) to use for Workloads
+        .PARAMETER WorkloadNetworkNTP
+            NTP Server(s) to use for Workloads
+        .PARAMETER WorkloadNetworkServiceStartIP
+            Starting IP Address for K8S Service (default: 10.96.0.0)
+        .PARAMETER WorkloadNetworkServiceCount
+            Number of IP Addrsses to allocate from WorkloadNetworkServiceStartIP (default: 256)
+        .PARAMETER StoragePolicyName
+            Name of VM Storage Policy to use for Control Plane VMs, Ephemeral Disks & Image Cache
+        .PARAMETER LoadBalancerLabel
+            Load Balancer label defined in vSphere with Tanzu (default: tanzu-haproxy-1)
+        .PARAMETER LoadBalancerStartIP
+            Starting IP Address for HAProxy Load Balancer
+        .PARAMETER LoadBalancerIPCount
+            Number of IP Addresses to allocate from starting from LoadBalancerStartIP
+        .PARAMETER LoginBanner
+            Login message to show during kubectl login
+        .EXAMPLE
+            $vSphereWithTanzuParams = @{
+                VsphereZoneName = "vz-01"
+                SupervisorClusterName = "svc-01"
+                ClusterName = "Tanzu-Cluster";
+                TanzuvCenterServer = "vcsa.tanzu.local";
+                TanzuvCenterServerUsername = "administrator@vsphere.local";
+                TanzuvCenterServerPassword = "VMware1!";
+                TanzuContentLibrary = "TKG-Content-Library";
+                ControlPlaneSize = "TINY";
+                MgmtNetwork = "management";
+                MgmtNetworkStartIP = "192.168.30.20";
+                MgmtNetworkPrefix = "24";
+                MgmtNetworkGateway = "192.168.30.1";
+                MgmtNetworkDNS = @("192.168.30.69");
+                MgmtNetworkDNSDomain = "tanzu.local";
+                MgmtNetworkNTP = @("162.159.200.123");
+                WorkloadNetwork = "workload";
+                WorkloadNetworkStartIP = "10.20.0.10";
+                WorkloadNetworkIPCount = 20;
+                WorkloadNetworkPrefix = "24";
+                WorkloadNetworkGateway = "10.20.0.1";
+                WorkloadNetworkDNS = @("10.20.0.1");
+                WorkloadNetworkDNSDomain = "tanzu.local";
+                WorkloadNetworkNTP = @("162.159.200.123");
+                WorkloadNetworkServiceStartIP = "10.96.0.0";
+                WorkloadNetworkServiceStartCount = "256";
+                StoragePolicyName = "Tanzu-Storage-Policy";
+                HAProxyVMvCenterServer = "vcsa.tanzu.local";
+                HAProxyVMvCenterUsername = "administrator@vsphere.local";
+                HAProxyVMvCenterPassword = "VMware1!";
+                HAProxyVMName = "haproxy.tanzu.local";
+                HAProxyIPAddress = "192.168.30.68";
+                HAProxyRootPassword = "VMware1!";
+                HAProxyPassword = "VMware1!";
+                LoadBalancerStartIP = "10.10.0.64";
+                LoadBalancerIPCount = 64;
+            }
+
+            New-WorkloadManagement4 @vSphereWithTanzuParams
+    #>
+    Param (
+        [Parameter(Mandatory=$True)][string]$VsphereZoneName="vz-01",
+        [Parameter(Mandatory=$True)][string]$SupervisorClusterName="svc-01",
+        [Parameter(Mandatory=$True)][string]$HAProxyVMName,
+        [Parameter(Mandatory=$True)][string]$HAProxyRootPassword,
+        [Parameter(Mandatory=$False)][string]$HAProxyUsername="wcp",
+        [Parameter(Mandatory=$True)][string]$HAProxyPassword,
+        [Parameter(Mandatory=$True)][string]$HAProxyVMvCenterServer,
+        [Parameter(Mandatory=$True)][string]$HAProxyVMvCenterUsername,
+        [Parameter(Mandatory=$True)][string]$HAProxyVMvCenterPassword,
+        [Parameter(Mandatory=$True)][string]$TanzuvCenterServer,
+        [Parameter(Mandatory=$True)][string]$TanzuvCenterServerUsername,
+        [Parameter(Mandatory=$True)][string]$TanzuvCenterServerPassword,
+        [Parameter(Mandatory=$True)][string]$ClusterName,
+        [Parameter(Mandatory=$True)][string]$TanzuContentLibrary,
+        [Parameter(Mandatory=$True)][ValidateSet("TINY","SMALL","MEDIUM","LARGE")][string]$ControlPlaneSize,
+        [Parameter(Mandatory=$False)]$MgmtNetwork="DVPG-Supervisor-Management-Network",
+        [Parameter(Mandatory=$True)][string]$MgmtNetworkStartIP,
+        [Parameter(Mandatory=$True)][string]$MgmtNetworkPrefix,
+        [Parameter(Mandatory=$True)][string]$MgmtNetworkGateway,
+        [Parameter(Mandatory=$True)][string[]]$MgmtNetworkDNS,
+        [Parameter(Mandatory=$True)][string[]]$MgmtNetworkDNSDomain,
+        [Parameter(Mandatory=$True)][string[]]$MgmtNetworkNTP,
+        [Parameter(Mandatory=$False)][string]$WorkloadNetworkLabel="workload-1",
+        [Parameter(Mandatory=$False)][string]$WorkloadNetwork="DVPG-Workload-Network",
+        [Parameter(Mandatory=$True)][string]$WorkloadNetworkStartIP,
+        [Parameter(Mandatory=$True)][string]$WorkloadNetworkIPCount,
+        [Parameter(Mandatory=$True)][string]$WorkloadNetworkPrefix,
+        [Parameter(Mandatory=$True)][string]$WorkloadNetworkGateway,
+        [Parameter(Mandatory=$True)][string[]]$WorkloadNetworkDNS,
+        [Parameter(Mandatory=$True)][string[]]$WorkloadNetworkDNSDomain,
+        [Parameter(Mandatory=$True)][string[]]$WorkloadNetworkNTP,
+        [Parameter(Mandatory=$False)][string]$WorkloadNetworkServiceStartIP="10.96.0.0",
+        [Parameter(Mandatory=$False)][string]$WorkloadNetworkServiceStartCount="256",
+        [Parameter(Mandatory=$False)][string]$LoadBalancerLabel="tanzu-haproxy-1",
+        [Parameter(Mandatory=$True)][string]$HAProxyIPAddress,
+        [Parameter(Mandatory=$False)][string]$HAProxyPort=5556,
+        [Parameter(Mandatory=$True)][string]$LoadBalancerStartIP,
+        [Parameter(Mandatory=$True)][string]$LoadBalancerIPCount,
+        [Parameter(Mandatory=$True)]$StoragePolicyName,
+        [Parameter(Mandatory=$False)]$LoginBanner,
+        [Switch]$EnableDebug
+    )
+
+    Write-host -ForegroundColor Green "Connecting to Management vCenter Server $HAProxyVMvCenterServer to retrieve HAProxy CA Certificate ..."
+    $viConnection = Connect-VIServer $HAProxyVMvCenterServer -User $HAProxyVMvCenterUsername -Password $HAProxyVMvCenterPassword -WarningAction SilentlyContinue
+    $caCertCmd = "cat /etc/haproxy/ca.crt"
+    $haProxyCert = (Invoke-VMScript -Server $viConnection -ScriptText $caCertCmd -vm (Get-VM -Server $viConnection -Name $HAProxyVMName) -GuestUser "root" -GuestPassword "$HAProxyRootPassword").ScriptOutput
+
+    Write-host -ForegroundColor Green "Disconnecting from Management vCenter ..."
+    Disconnect-VIServer $viConnection -Confirm:$false
+
+    Write-host -ForegroundColor Green "Connecting to Tanzu vCenter Server to enable Workload Management ..."
+    Connect-VIServer $TanzuvCenterServer -User $TanzuvCenterServerUsername -Password $TanzuvCenterServerPassword -WarningAction SilentlyContinue | Out-Null
+
+    if( (Get-ContentLibrary -Name $TanzuContentLibrary).syncdate -eq $NULL ) {
+        Write-host -ForegroundColor Green "TKG Content Library has not fully sync'ed, please try again later"
+        Disconnect-VIServer * -Confirm:$false
+        break
+    } else {
+        Connect-CisServer $TanzuvCenterServer -User $TanzuvCenterServerUsername -Password $TanzuvCenterServerPassword -WarningAction SilentlyContinue | Out-Null
+
+        # Cluster Moref
+        $clusterService = Get-CisService "com.vmware.vcenter.cluster"
+        $clusterFilterSpec = $clusterService.help.list.filter.Create()
+        $clusterFilterSpec.names = @("$ClusterName")
+        $clusterMoRef = $clusterService.list($clusterFilterSpec).cluster.Value
+        if ($clusterMoRef -eq $NULL) {
+            Write-Host -ForegroundColor Red "Unable to find vSphere Cluster ${ClusterName}"
+            break
+        }
+
+        # Management Network Moref
+        $networkService = Get-CisService "com.vmware.vcenter.network"
+        $networkFilterSpec = $networkService.help.list.filter.Create()
+        $networkFilterSpec.names = @("$MgmtNetwork")
+        $mgmtNetworkMoRef = $networkService.list($networkFilterSpec).network.Value
+        if ($mgmtNetworkMoRef -eq $NULL) {
+            Write-Host -ForegroundColor Red "Unable to find vSphere Management Network ${MgmtNetwork}"
+            break
+        }
+
+        # Workload Network Moref
+        $networkFilterSpec = $networkService.help.list.filter.Create()
+        $networkFilterSpec.names = @("$WorkloadNetwork")
+        $workloadNetworkMoRef = $networkService.list($networkFilterSpec).network.Value
+        if ($workloadNetworkMoRef -eq $NULL) {
+            Write-Host -ForegroundColor Red "Unable to find vSphere Workload Network ${WorkloadNetwork}"
+            break
+        }
+
+        $storagePolicyService = Get-CisService "com.vmware.vcenter.storage.policies"
+        $sps= $storagePolicyService.list()
+        $pacificSP = ($sps | where {$_.name -eq $StoragePolicyName}).Policy.Value
+
+
+        $supervisorService = Get-CisService "com.vmware.vcenter.namespace_management.supervisors"
+        $spec = $supervisorService.Help.enable_on_compute_cluster.spec.Create()
+        $spec.zone = $VsphereZoneName
+        $spec.name = $SupervisorClusterName
+
+        ## Control Plane Spec ##
+        $cpNetworkSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.Create()
+        $cpNetworkSpec.network = $mgmtNetworkMoRef
+
+        # Backing Network
+        $backingSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.backing.Create()
+        $backingSpec.backing = "NETWORK"
+        $backingSpec.network = $mgmtNetworkMoRef
+        $cpNetworkSpec.backing = $backingSpec
+
+        #IP Management
+        $cpIpMgmtSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.ip_management.Create()
+        $cpIpMgmtSpec.dhcp_enabled = $False
+
+        $cpRangeSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.ip_management.ip_assignments.Element.ranges.Element.Create()
+        $cpRangeSpec.address = $MgmtNetworkStartIP
+        $cpRangeSpec.count = 5
+
+        $cpIpMgmtSpec.gateway_address = "$MgmtNetworkGateway/$MgmtNetworkPrefix"
+        $cpIpAssignmentSpec =  $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.ip_management.ip_assignments.Element.Create()
+        $cpIpAssignmentSpec.assignee = "NODE"
+        $cpIpAssignmentSpec.ranges = @($cpRangeSpec)
+        $cpIpMgmtSpec.ip_assignments = @($cpIpAssignmentSpec)
+        $cpNetworkSpec.ip_management = $cpIpMgmtSpec
+
+        # DNS/NTP Service
+        $cpServiceSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.services.Create()
+        $cpDnsSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.services.dns.Create()
+        $cpDnsSpec.servers = @($MgmtNetworkDNS)
+        $cpDnsSpec.search_domains = @($MgmtNetworkDNSDomain)
+        $cpServiceSpec.dns = $cpDnsSpec
+        $cpNtpSpec = $supervisorService.Help.enable_on_compute_cluster.spec.control_plane.network.services.ntp.Create()
+        $cpNtpSpec.servers = @($MgmtNetworkNTP)
+        $cpServiceSpec.ntp = $cpNtpSpec
+        $cpNetworkSpec.services = $cpServiceSpec
+
+        $spec.control_plane.network = $cpNetworkSpec
+        $spec.control_plane.storage_policy = $pacificSP
+        $spec.control_plane.size = $ControlPlaneSize
+
+        $LoginBanner = "
+
+        " + [char]::ConvertFromUtf32(0x1F973) + " vSphere with Tanzu using HAProxy & vSphere Zones enabled by William Lam's Script " + [char]::ConvertFromUtf32(0x1F973) + "
+
+    "
+        $spec.control_plane.login_banner = $LoginBanner
+
+        ## Workloads Spec ##
+        $wlSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.Create()
+
+        # Network
+        $wlNetworkSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.Create()
+        $wlNetworkSpec.network_type = "VSPHERE"
+        $wlNetworkSpec.network = $WorkloadNetworkLabel
+        $vsphereNetworkSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.vsphere.Create()
+        $vsphereNetworkSpec.dvpg = $workloadNetworkMoRef
+        $wlNetworkSpec.vsphere = $vsphereNetworkSpec
+
+        # DNS/NTP Services
+        $wlServiceSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.services.Create()
+        $wlDnsSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.services.dns.Create()
+        $wlDnsSpec.servers = @($WorkloadNetworkDNS)
+        $wlDnsSpec.search_domains = @($WorkloadNetworkDNSDomain)
+        $wlServiceSpec.dns = $wlDnsSpec
+        $wlNtpSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.services.ntp.Create()
+        $wlNtpSpec.servers = $WorkloadNetworkNTP
+        $wlServiceSpec.ntp = $wlNtpSpec
+        $wlNetworkSpec.services = $wlServiceSpec
+
+        # Workload & Workload Service IP Management
+        $wlIpMgmtSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.ip_management.Create()
+        $wlIpMgmtSpec.dhcp_enabled = $False
+        $wlIpMgmtSpec.gateway_address = "$WorkloadNetworkGateway/$WorkloadNetworkPrefix"
+
+        $wlIpAssignmentSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.ip_management.ip_assignments.Element.Create()
+        $wlRangeSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.ip_management.ip_assignments.Element.ranges.Element.Create()
+        $wlRangeSpec.address = $WorkloadNetworkStartIP
+        $wlRangeSpec.count = $WorkloadNetworkIPCount
+        $wlIpAssignmentSpec.ranges = @($wlRangeSpec)
+        $wlIpAssignmentSpec.assignee = "NODE"
+
+        $wlServiceIpAssignmentSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.ip_management.ip_assignments.Element.Create()
+        $wlServiceRangeSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.network.ip_management.ip_assignments.Element.ranges.Element.Create()
+        $wlServiceRangeSpec.address = $WorkloadNetworkServiceStartIP
+        $wlServiceRangeSpec.count = $WorkloadNetworkServiceStartCount
+        $wlServiceIpAssignmentSpec.ranges = @($wlServiceRangeSpec)
+        $wlServiceIpAssignmentSpec.assignee = "SERVICE"
+
+        $wlIpMgmtSpec.ip_assignments = @($wlIpAssignmentSpec, $wlServiceIpAssignmentSpec)
+        $wlNetworkSpec.ip_management = $wlIpMgmtSpec
+
+        $wlSpec.network = $wlNetworkSpec
+
+        # Edge
+        $wlEdgeSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.edge.Create()
+        $wlEdgeSpec.id = $LoadBalancerLabel
+        $wlEdgeSpec.provider = "HAPROXY"
+        $lbRangeSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.edge.load_balancer_address_ranges.Element.Create()
+        $lbRangeSpec.address = $LoadBalancerStartIP
+        $lbRangeSpec.count = $LoadBalancerIPCount
+        $wlEdgeSpec.load_balancer_address_ranges = @($lbRangeSpec)
+        $haproxySpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.edge.haproxy.Create()
+        $haproxyServerSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.edge.haproxy.servers.Element.Create()
+        $haproxyServerSpec.host = $HAProxyIPAddress
+        $haproxyServerSpec.port = $HAProxyPort
+        $haproxySpec.servers = @($haproxyServerSpec)
+        $haproxySpec.username = $HAProxyUsername
+        $haproxySpec.password = [VMware.VimAutomation.Cis.Core.Types.V1.Secret]$HAProxyPassword
+        $haproxySpec.certificate_authority_chain = $haProxyCert
+        $wlEdgeSpec.haproxy = $haproxySpec
+        $wlSpec.edge = $wlEdgeSpec
+
+        # Images
+        $wlImagesSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.images.Create()
+        $wlImagesSpec.kubernetes_content_library = (Get-ContentLibrary -Name $TanzuContentLibrary)[0].id
+        $wlSpec.images = $wlImagesSpec
+
+        # Storage
+        $wlStorageSpec = $supervisorService.Help.enable_on_compute_cluster.spec.workloads.storage.Create()
+        $wlStorageSpec.ephemeral_storage_policy = $pacificSP
+        $wlStorageSpec.image_storage_policy = $pacificSP
+        $wlSpec.storage = $wlStorageSpec
+
+        $spec.workloads = $wlSpec
+
+        # Output JSON payload
+        if($EnableDebug) {
+            $spec | ConvertTo-Json -Depth 10
+        }
+
+        try {
+            Write-host -ForegroundColor Green "Enabling Tanzu Workload Management on vSphere Cluster ${ClusterName} with vSphere Zones ..."
+            $task = $supervisorService.enable_on_compute_cluster($clusterMoRef,$spec)
+        } catch {
+            Write-host -ForegroundColor red "Error in attempting to enable Tanzu Workload Management on vSphere Cluster ${ClusterName}"
+            Write-host -ForegroundColor red "($_.Exception.Message)"
+            Disconnect-VIServer * -Confirm:$false | Out-Null
+            Disconnect-CisServer $global:DefaultCisServers -Confirm:$false | Out-Null
+            break
+        }
+        Write-host -ForegroundColor Green "Please refer to the Tanzu Workload Management UI in vCenter Server to monitor the progress of this operation"
+
+        Write-host -ForegroundColor Green "Disconnecting from Tanzu Management vCenter ..."
+        Disconnect-VIServer * -Confirm:$false | Out-Null
+        Disconnect-CisServer $global:DefaultCisServers -Confirm:$false | Out-Null
+    }
+}
+
 Function New-WorkloadManagement3 {
     <#
         .NOTES
